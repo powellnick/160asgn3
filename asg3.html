@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8"/>
+  <title>Nicholas Powell Asgn3</title>
+  <style>
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  overflow: hidden; /* Prevent scrolling */
+}
+
+#canvasContainer {
+  position: relative;
+  width: 100vw;  /* Full width of the viewport */
+  height: 600px; /* Keep height the same */
+}
+
+#webgl {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
+    #crosshair {
+      position: absolute;
+      pointer-events: none;
+      color: red;
+      font-size: 24px;
+      top: 50%;      /* 50% down from container top */
+      left: 50%;     /* 50% from container left */
+      transform: translate(-50%, -50%);
+      z-index: 9999;
+    }
+
+    #statusMessage {
+      position: absolute;
+      pointer-events: none;
+      color: yellow;
+      font-size: 18px;
+      top: 10px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 9999;
+    }
+  </style>
+</head>
+
+<body onload="main()">
+  <div id="canvasContainer">
+    <canvas id="webgl" width="600" height="600">
+      Please use a browser that supports "canvas"
+    </canvas>
+
+    <div id="crosshair">+</div>
+    <div id="statusMessage"></div>
+  </div>
+
+  <p id="fps">ms: 0, fps: 0</p>
+
+  <p>
+    Click add/delete to edit blocks below crosshair
+    <button onclick="toggleComment()">💬</button>
+  </p>
+  <p id="commentText" style="display: none;">Try moving a little closer/farther away if add/delete seems to not be working</p>
+
+
+<script>
+    function toggleComment() {
+      var comment = document.getElementById("commentText");
+      comment.style.display = (comment.style.display === "none") ? "block" : "none";
+    }
+</script>
+
+  <button id="addBlockBtn">Add Block</button>
+  <button id="removeBlockBtn">Remove Block</button>
+
+  <p>
+    You can click and drag, or use the keys below to explore and navigate through map:
+    <br>W : Move Forwards
+    <br>S : Move Backwards
+    <br>A : Move Left
+    <br>D : Move Right
+    <br>Q : Look Left
+    <br>E : Look Right
+  </p>
+
+  <!-- Script dependencies -->
+  <script src="lib/webgl-utils.js"></script>
+  <script src="lib/webgl-debug.js"></script>
+  <script src="lib/cuon-utils.js"></script>
+  <script src="lib/cuon-matrix-cse160.js"></script>
+  <script src="Cube.js"></script>
+  <script src="camera.js"></script>
+  <script src="asg3.js"></script>
+</body>
+</html>
