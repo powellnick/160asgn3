@@ -27,39 +27,53 @@ const FSHADER_SOURCE = `
     precision mediump float;
     varying vec2 v_UV;
     uniform vec4 u_FragColor;
-    uniform sampler2D u_Sampler0;
-    uniform sampler2D u_Sampler1;
-    uniform sampler2D u_Sampler2;
-    uniform sampler2D u_Sampler3;
+
+    uniform sampler2D u_Sampler0;  // dirt
+    uniform sampler2D u_Sampler1;  // sky
+    uniform sampler2D u_Sampler2;  // grass
+    uniform sampler2D u_Sampler3;  // stone
+    uniform sampler2D u_Sampler4;  // wood
+    uniform sampler2D u_Sampler5;  // Iron
+    uniform sampler2D u_Sampler6;  // Gold
+    uniform sampler2D u_Sampler7;  // Diamond
+
     uniform int u_whichTexture;
 
     void main() {
-        if(u_whichTexture == -2) {
-            // Plain solid color
+        if (u_whichTexture == -2) {
+            // plain color
             gl_FragColor = u_FragColor;
         }
-        else if(u_whichTexture == -1) {
-            // Debug color: use UV as RG
+        else if (u_whichTexture == -1) {
+            // debugging: UV
             gl_FragColor = vec4(v_UV, 1.0, 1.0);
         }
-        else if(u_whichTexture == 0) {
-            // Use texture sampler0
-            gl_FragColor = texture2D(u_Sampler0, v_UV);
+        else if (u_whichTexture == 0) {
+            gl_FragColor = texture2D(u_Sampler0, v_UV);  // grass
         }
-        else if(u_whichTexture == 1) {
-            // Use texture sampler1
-            gl_FragColor = texture2D(u_Sampler1, v_UV);
+        else if (u_whichTexture == 1) {
+            gl_FragColor = texture2D(u_Sampler1, v_UV);  // sky
         }
-        else if(u_whichTexture == 2) {
-            // Use texture sampler2
-            gl_FragColor = texture2D(u_Sampler2, v_UV);
+        else if (u_whichTexture == 2) {
+            gl_FragColor = texture2D(u_Sampler2, v_UV);  // dirt
         }
-        else if(u_whichTexture == 3) {
-            // Use texture sampler3
-            gl_FragColor = texture2D(u_Sampler3, v_UV);
+        else if (u_whichTexture == 3) {
+            gl_FragColor = texture2D(u_Sampler3, v_UV);  // stone
+        }
+        else if (u_whichTexture == 4) {
+            gl_FragColor = texture2D(u_Sampler4, v_UV);  // wood
+        }
+        else if (u_whichTexture == 5) {
+            gl_FragColor = texture2D(u_Sampler5, v_UV);  // iron
+        }
+        else if (u_whichTexture == 6) {
+            gl_FragColor = texture2D(u_Sampler6, v_UV);  // gold
+        }
+        else if (u_whichTexture == 7) {
+            gl_FragColor = texture2D(u_Sampler7, v_UV);  // diamond
         }
         else {
-            // Fallback color (bright red)
+            // fallback
             gl_FragColor = vec4(1.0, 0.2, 0.2, 1.0);
         }
     }
@@ -90,6 +104,13 @@ let timeElapsed = 0.0;
 let enableAnimation = false;
 let useTextureSet = true;
 let currentAngleX = 0, currentAngleY = 0;
+let userStacks = new Array(32);
+for (let z = 0; z < 32; z++) {
+  userStacks[z] = new Array(32);
+  for (let x = 0; x < 32; x++) {
+    userStacks[z][x] = [];
+  }
+}
 
 const terrainMap = generateRandomTerrain(32, 32);
 
@@ -133,17 +154,14 @@ function updateStatusMessage(msg) {
 
 
 function getMapCellUnderCrosshair() {
-  // Camera eye
   const eyeX = worldCamera.eye.elements[0];
   const eyeY = worldCamera.eye.elements[1];
   const eyeZ = worldCamera.eye.elements[2];
 
-  // Forward direction = (at - eye)
   let dirX = worldCamera.at.elements[0] - eyeX;
   let dirY = worldCamera.at.elements[1] - eyeY;
   let dirZ = worldCamera.at.elements[2] - eyeZ;
 
-  // Normalize
   const len = Math.sqrt(dirX*dirX + dirY*dirY + dirZ*dirZ);
   if (len > 1e-6) {
     dirX /= len;
@@ -151,7 +169,7 @@ function getMapCellUnderCrosshair() {
     dirZ /= len;
   }
 
-  const distance = 4.0; // tweak as desired
+  const distance = 4.0;
   const hitX = eyeX + dirX * distance;
   const hitZ = eyeZ + dirZ * distance;
 
@@ -162,34 +180,38 @@ function getMapCellUnderCrosshair() {
 }
 
 function addBlockUnderCrosshair() {
-  worldCamera.eye.elements[1] += 0.2;
-  const { mapX, mapZ } = getMapCellUnderCrosshair();
-  worldCamera.eye.elements[1] -= 0.2;
-
-  if (mapX < 0 || mapX >= 32 || mapZ < 0 || mapZ >= 32) {
-    updateStatusMessage("Cannot add block; please place within bounds!");
-    return;
+    const { mapX, mapZ } = getMapCellUnderCrosshair();
+    if (mapX < 0 || mapX >= 32 || mapZ < 0 || mapZ >= 32) {
+      updateStatusMessage("Cannot add block; out of bounds!");
+      return;
+    }
+  
+    let selected = document.getElementById('blockTypeSelect');
+    let chosenTex = parseInt(selected.value); 
+    userStacks[mapZ][mapX].push(chosenTex);
+  
+    updateStatusMessage("");
+    renderAllShapes();
   }
 
-  terrainMap[mapZ][mapX]++;
-  updateStatusMessage("");
-  renderAllShapes();
-}
-
-function removeBlockUnderCrosshair() {
-  const { mapX, mapZ } = getMapCellUnderCrosshair();
-
-  if (mapX < 0 || mapX >= 32 || mapZ < 0 || mapZ >= 32) {
-    updateStatusMessage("Cannot remove block; aim within bounds!");
-    return;
+  function removeBlockUnderCrosshair() {
+    const { mapX, mapZ } = getMapCellUnderCrosshair();
+    if (mapX < 0 || mapX >= 32 || mapZ < 0 || mapZ >= 32) {
+      updateStatusMessage("Cannot remove block; out of bounds!");
+      return;
+    }
+  
+    let stack = userStacks[mapZ][mapX];
+    if (stack.length > 0) {
+      stack.pop();
+    } else {
+      if (terrainMap[mapZ][mapX] > 0) {
+        terrainMap[mapZ][mapX]--;
+      }
+    }
+    updateStatusMessage("");
+    renderAllShapes();
   }
-
-  if (terrainMap[mapZ][mapX] > 0) {
-    terrainMap[mapZ][mapX]--;
-  }
-  updateStatusMessage("");
-  renderAllShapes();
-}
 
 
 function generateRandomTerrain(rows, cols) {
@@ -225,51 +247,67 @@ function connectVariablesToGLSL() {
     u_Sampler1 = worldGL.getUniformLocation(worldGL.program, 'u_Sampler1');
     u_Sampler2 = worldGL.getUniformLocation(worldGL.program, 'u_Sampler2');
     u_Sampler3 = worldGL.getUniformLocation(worldGL.program, 'u_Sampler3');
+    u_Sampler4 = worldGL.getUniformLocation(worldGL.program, 'u_Sampler4');
+    u_Sampler5 = worldGL.getUniformLocation(worldGL.program, 'u_Sampler5');
+    u_Sampler6 = worldGL.getUniformLocation(worldGL.program, 'u_Sampler6');
+    u_Sampler7 = worldGL.getUniformLocation(worldGL.program, 'u_Sampler7');
 
     let identityMatrix = new Matrix4();
     worldGL.uniformMatrix4fv(u_ModelMatrix, false, identityMatrix.elements);
 }
 
 function setupTextures() {
-    let image0 = new Image();
-    let image1 = new Image();
-    let image2 = new Image();
+    let img0 = new Image(); // dirt
+    let img1 = new Image(); // sky
+    let img2 = new Image(); // grass
+    let img3 = new Image(); // stone
+    let img4 = new Image(); // wood
+    let img5 = new Image(); // iron
+    let img6 = new Image(); // gold
+    let img7 = new Image(); // diamond
 
-    image0.onload = () => { pushImageToTextureUnit(image0, 0); };
-    image1.onload = () => { pushImageToTextureUnit(image1, 1); };
-    image2.onload = () => { pushImageToTextureUnit(image2, 2); };
+    img0.onload = () => pushImageToTextureUnit(img0, 0);
+    img1.onload = () => pushImageToTextureUnit(img1, 1);
+    img2.onload = () => pushImageToTextureUnit(img2, 2);
+    img3.onload = () => pushImageToTextureUnit(img3, 3);
+    img4.onload = () => pushImageToTextureUnit(img4, 4);
+    img5.onload = () => pushImageToTextureUnit(img5, 5);
+    img6.onload = () => pushImageToTextureUnit(img6, 6);
+    img7.onload = () => pushImageToTextureUnit(img7, 7);
 
-    if (useTextureSet) {
-        image0.src = 'dirt.png';   // texture #0
-        image1.src = 'sky.png';   // texture #1
-        image2.src = 'grass.png';   // texture #2
-    }
+    img0.src = 'dirt.png';
+    img1.src = 'sky.png';
+    img2.src = 'grass.png';
+    img3.src = 'stone.png';
+    img4.src = 'wood.png';
+    img5.src = 'iron.png';
+    img6.src = 'gold.png';
+    img7.src = 'diamond.png';
 }
 
 function pushImageToTextureUnit(img, unitIndex) {
-    let textureHandle = worldGL.createTexture();
-    if (!textureHandle) {
+    let texture = worldGL.createTexture();
+    if (!texture) {
         console.error('Failed to create texture object for unit ' + unitIndex);
         return;
     }
-
     worldGL.pixelStorei(worldGL.UNPACK_FLIP_Y_WEBGL, 1);
     worldGL.activeTexture(worldGL['TEXTURE' + unitIndex]);
-    worldGL.bindTexture(worldGL.TEXTURE_2D, textureHandle);
+    worldGL.bindTexture(worldGL.TEXTURE_2D, texture);
     worldGL.texParameteri(worldGL.TEXTURE_2D, worldGL.TEXTURE_MIN_FILTER, worldGL.LINEAR);
     worldGL.texImage2D(worldGL.TEXTURE_2D, 0, worldGL.RGB, worldGL.RGB, worldGL.UNSIGNED_BYTE, img);
 
-    if (unitIndex === 0) {
-        worldGL.uniform1i(u_Sampler0, 0);
-    } else if (unitIndex === 1) {
-        worldGL.uniform1i(u_Sampler1, 1);
-    } else if (unitIndex === 2) {
-        worldGL.uniform1i(u_Sampler2, 2);
-    } else if (unitIndex === 3) {
-        worldGL.uniform1i(u_Sampler3, 3);
+    switch (unitIndex) {
+      case 0: worldGL.uniform1i(u_Sampler0, 0); break;
+      case 1: worldGL.uniform1i(u_Sampler1, 1); break;
+      case 2: worldGL.uniform1i(u_Sampler2, 2); break;
+      case 3: worldGL.uniform1i(u_Sampler3, 3); break;
+      case 4: worldGL.uniform1i(u_Sampler4, 4); break;
+      case 5: worldGL.uniform1i(u_Sampler5, 5); break;
+      case 6: worldGL.uniform1i(u_Sampler6, 6); break;
+      case 7: worldGL.uniform1i(u_Sampler7, 7); break;
     }
 }
-
 function tick() {
     timeElapsed = performance.now() / 1000.0 - initialTime;
     renderAllShapes();
@@ -345,12 +383,12 @@ function initializeMouseDrag(canvasElement) {
 
     canvasElement.onmousemove = function(e) {
         if (isDragging) {
-            let factor = 0.3; // Lowering sensitivity to prevent overly fast movement
+            let factor = 0.3;
             let dx = factor * (e.clientX - lastX);
             let dy = factor * (e.clientY - lastY);
 
-            globalRotY -= dx;  // Drag left rotates right, drag right rotates left
-            globalRotX -= dy;  // Drag down rotates up, drag up rotates down
+            globalRotY -= dx;
+            globalRotX -= dy;
 
             globalRotX = Math.max(Math.min(globalRotX, 90), -90);
 
@@ -375,24 +413,30 @@ function drawFloorAndSky() {
     sky.matrix.translate(-0.5, -0.5, -0.5);
     sky.drawCube();
 }
+
 function drawAllTerrain() {
     for (let z = 0; z < 32; z++) {
-        for (let x = 0; x < 32; x++) {
-            let heightValue = terrainMap[z][x];
-            for (let y = 0; y < heightValue; y++) {
-                let block = new Cube();
-                if (heightValue === 0) {
-                } else if (heightValue < 2) {
-                    block.textureNum = 0;
-                } else {
-                    block.textureNum = 0;
-                }
-                block.matrix.translate(x - 4, y - 0.75, z - 4);
-                block.drawCube();
-            }
+      for (let x = 0; x < 32; x++) {
+        let heightValue = terrainMap[z][x];
+        for (let y = 0; y < heightValue; y++) {
+          let block = new Cube();
+          block.textureNum = 0; // 0 or 2
+          block.matrix.translate(x - 4, y - 0.75, z - 4);
+          block.drawCube();
         }
+  
+        let stack = userStacks[z][x];
+        for (let i = 0; i < stack.length; i++) {
+          let userTex = stack[i];
+          let userCube = new Cube();
+          userCube.textureNum = userTex;
+          let topY = heightValue + i;
+          userCube.matrix.translate(x - 4, topY - 0.75, z - 4);
+          userCube.drawCube();
+        }
+      }
     }
-}
+  }
 
 function updateHTMLStats(txt) {
     let fpsElement = document.getElementById('fps');
