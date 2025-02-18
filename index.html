@@ -1,37 +1,38 @@
+<!---Nicholas Powell-->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
   <title>Nicholas Powell Asgn3</title>
   <style>
+    html, body {
+      margin: 0;
+      padding: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden; /* Prevent scrolling */
+    }
 
-html, body {
-  margin: 0;
-  padding: 0;
-  width: 100%;
-  height: 100%;
-  overflow: hidden; /* Prevent scrolling */
-}
+    #canvasContainer {
+      position: relative;
+      width: 100vw;  /* Full width of the viewport */
+      height: 600px; 
+    }
 
-#canvasContainer {
-  position: relative;
-  width: 100vw;  /* Full width of the viewport */
-  height: 600px; /* Keep height the same */
-}
-
-#webgl {
-  width: 100%;
-  height: 100%;
-  display: block;
-}
+    #webgl {
+      width: 100%;
+      height: 100%;
+      display: block;
+    }
 
     #crosshair {
       position: absolute;
       pointer-events: none;
       color: red;
       font-size: 24px;
-      top: 50%;      /* 50% down from container top */
-      left: 50%;     /* 50% from container left */
+      top: 50%;
+      left: 50%;
       transform: translate(-50%, -50%);
       z-index: 9999;
     }
@@ -45,6 +46,41 @@ html, body {
       left: 50%;
       transform: translateX(-50%);
       z-index: 9999;
+    }
+
+    /* D-Pad container at the bottom-center */
+    #dpadContainer {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background-color: rgba(255, 255, 255, 0.6);
+      border-radius: 8px;
+      padding: 10px;
+      text-align: center;
+      z-index: 9999;
+    }
+
+    .dpad-row {
+      display: flex;
+      justify-content: center;
+      margin: 5px 0;
+    }
+
+    .dpad-btn {
+      width: 60px;
+      height: 60px;
+      font-size: 24px;
+      margin: 0 5px;
+      border: none;
+      border-radius: 8px;
+      background-color: #eee;
+      cursor: pointer;
+    }
+
+    .dpad-btn:hover,
+    .dpad-btn:active {
+      background-color: #ddd;
     }
   </style>
 </head>
@@ -65,29 +101,39 @@ html, body {
     Click add/delete to edit blocks below crosshair
     <button onclick="toggleComment()">💬</button>
   </p>
-  <p id="commentText" style="display: none;">Try moving a little closer/farther away if add/delete seems to not be working</p>
+  <p id="commentText" style="display: none;">
+    Try moving a little closer/farther away if add/delete seems to not be working
+  </p>
 
-
-<script>
+  <script>
     function toggleComment() {
       var comment = document.getElementById("commentText");
       comment.style.display = (comment.style.display === "none") ? "block" : "none";
     }
-</script>
+  </script>
 
   <button id="addBlockBtn">Add Block</button>
   <button id="removeBlockBtn">Remove Block</button>
-  
-  <button id="moveForwardBtn">Move Forward</button>
-  <button id="moveBackwardBtn">Move Backward</button>
-  <button id="moveLeftBtn">Move Left</button>
-  <button id="moveRightBtn">Move Right</button>
-  <button id="panLeftBtn">Look Left</button>
-  <button id="panRightBtn">Look Right</button>
-  <button id="lookUpBtn">Look Up</button>
-  <button id="lookDownBtn">Look Down</button>
 
-  
+  <div id="dpadContainer">
+    <div class="dpad-row">
+      <button id="moveForwardBtn" class="dpad-btn">↑</button>
+    </div>
+
+    <div class="dpad-row">
+      <button id="moveLeftBtn" class="dpad-btn">←</button>
+      <button id="moveBackwardBtn" class="dpad-btn">↓</button>
+      <button id="moveRightBtn" class="dpad-btn">→</button>
+    </div>
+
+    <div class="dpad-row">
+      <button id="panLeftBtn" class="dpad-btn">Look Left</button>
+      <button id="panRightBtn" class="dpad-btn">Look Right</button>
+      <button id="lookUpBtn" class="dpad-btn">Look Up</button>
+      <button id="lookDownBtn" class="dpad-btn">Look Down</button>
+    </div>
+  </div>
+
   <p>
     Select Block Type:
     <select id="blockTypeSelect">
@@ -101,7 +147,7 @@ html, body {
   </p>
 
   <p>
-    You can click and drag, or use the keys below to explore and navigate through map:
+    You can click and drag, or use the keys below to explore and navigate:
     <br>W : Move Forwards
     <br>S : Move Backwards
     <br>A : Move Left
