@@ -81,4 +81,22 @@ class Camera {
     panRight(alpha = 5.0) {
       this.panLeft(-alpha);
     }
+
+    lookUp(alpha = 5.0) {
+        let f = new Vector3(this.at.elements);
+        f.sub(this.eye);  
+        let right = Vector3.cross(f, this.up);
+        right.normalize();  
+        let rot = new Matrix4();
+        rot.setRotate(alpha, right.elements[0], right.elements[1], right.elements[2]);  
+        let fPrime = rot.multiplyVector3(f);  
+        this.at.set(this.eye);
+        this.at.add(fPrime);  
+        this.up = rot.multiplyVector3(this.up);
+          this.updateViewMatrix();
+      }
+  
+      lookDown(alpha = 5.0) {
+        this.lookUp(-alpha);
+      }
 }
