@@ -136,12 +136,15 @@ function main() {
     worldCamera = new Camera(worldCanvas);
 
     setupTextures();
+    setupButtonEvents();
     document.getElementById('addBlockBtn').onclick = addBlockUnderCrosshair;
     document.getElementById('removeBlockBtn').onclick = removeBlockUnderCrosshair;
+    
 
+    document.onclick = handleKeyPress;
     document.onkeydown = handleKeyPress;
     initializeMouseDrag(worldCanvas);
-
+    
     requestAnimationFrame(tick);
 }
 
@@ -150,6 +153,77 @@ function updateStatusMessage(msg) {
   if (msgElem) {
     msgElem.innerHTML = msg;
   }
+}
+
+function addContinuousButton(btnId, action) {
+  let timer = null;
+  const btn = document.getElementById(btnId);
+
+  const startAction = (e) => {
+    e.preventDefault();
+    if (!timer) {
+      action();
+      timer = setInterval(action, 100);
+    }
+  };
+
+  const stopAction = (e) => {
+    e.preventDefault();
+    if (timer) {
+      clearInterval(timer);
+      timer = null;
+    }
+  };
+
+  btn.addEventListener('mousedown', startAction);
+  btn.addEventListener('mouseup', stopAction);
+  btn.addEventListener('mouseleave', stopAction);
+
+  btn.addEventListener('touchstart', startAction);
+  btn.addEventListener('touchend', stopAction);
+  btn.addEventListener('touchcancel', stopAction);
+}
+
+function setupButtonEvents() {
+  addContinuousButton('moveForwardBtn', () => {
+    worldCamera.moveForward();
+    renderAllShapes();
+  });
+
+  addContinuousButton('moveBackwardBtn', () => {
+    worldCamera.moveBackward();
+    renderAllShapes();
+  });
+
+  addContinuousButton('moveLeftBtn', () => {
+    worldCamera.moveLeft();
+    renderAllShapes();
+  });
+
+  addContinuousButton('moveRightBtn', () => {
+    worldCamera.moveRight();
+    renderAllShapes();
+  });
+
+  addContinuousButton('panLeftBtn', () => {
+    worldCamera.panLeft();
+    renderAllShapes();
+  });
+
+  addContinuousButton('panRightBtn', () => {
+    worldCamera.panRight();
+    renderAllShapes();
+  });
+
+  addContinuousButton('lookUpBtn', () => {
+    worldCamera.lookUp();
+    renderAllShapes();
+  });
+
+  addContinuousButton('lookDownBtn', () => {
+    worldCamera.lookDown();
+    renderAllShapes();
+  });
 }
 
 
@@ -356,8 +430,13 @@ function handleKeyPress(ev) {
         case 69: // E
             worldCamera.panRight();
             break;
+        case 79: // O: Look Up
+            worldCamera.lookUp();
+            break;
+        case 80: // P: Look Down
+            worldCamera.lookDown();
+            break;
         default:
-            // no-op
             break;
     }
     renderAllShapes();
