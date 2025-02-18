@@ -467,38 +467,74 @@ function handleKeyPress(ev) {
 }
 
 function initializeMouseDrag(canvasElement) {
-    let isDragging = false;
-    let lastX = -1, lastY = -1;
+  let isDragging = false;
+  let lastX = -1, lastY = -1;
 
-    canvasElement.onmousedown = function(e) {
-        let x = e.clientX, y = e.clientY;
-        let rect = e.target.getBoundingClientRect();
-        if (rect.left <= x && x < rect.right && rect.top <= y && y < rect.bottom) {
-            isDragging = true;
-            lastX = x; 
-            lastY = y;
-        }
-    };
+  const startDrag = (x, y) => {
+    let rect = canvasElement.getBoundingClientRect();
+    if (rect.left <= x && x < rect.right && rect.top <= y && y < rect.bottom) {
+      isDragging = true;
+      lastX = x;
+      lastY = y;
+    }
+  };
 
-    canvasElement.onmouseup = function() {
-        isDragging = false;
-    };
+  const moveDrag = (x, y) => {
+    if (isDragging) {
+      let factor = 0.3;
+      let dx = factor * (x - lastX);
+      let dy = factor * (y - lastY);
 
-    canvasElement.onmousemove = function(e) {
-        if (isDragging) {
-            let factor = 0.3;
-            let dx = factor * (e.clientX - lastX);
-            let dy = factor * (e.clientY - lastY);
+      globalRotY -= dx;
+      globalRotX -= dy;
 
-            globalRotY -= dx;
-            globalRotX -= dy;
+      globalRotX = Math.max(Math.min(globalRotX, 90), -90);
 
-            globalRotX = Math.max(Math.min(globalRotX, 90), -90);
+      lastX = x;
+      lastY = y;
+    }
+  };
 
-            lastX = e.clientX;
-            lastY = e.clientY;
-        }
-    };
+  const endDrag = () => {
+    isDragging = false;
+  };
+
+  canvasElement.onmousedown = (e) => {
+    startDrag(e.clientX, e.clientY);
+  };
+
+  canvasElement.onmousemove = (e) => {
+    moveDrag(e.clientX, e.clientY);
+  };
+
+  canvasElement.onmouseup = endDrag;
+  canvasElement.onmouseleave = endDrag;
+
+  canvasElement.ontouchstart = (e) => {
+    e.preventDefault();  // Prevent scrolling
+    if (e.touches.length > 0) {
+      let touch = e.touches[0];
+      startDrag(touch.clientX, touch.clientY);
+    }
+  };
+
+  canvasElement.ontouchmove = (e) => {
+    e.preventDefault();  // Prevent scrolling
+    if (e.touches.length > 0) {
+      let touch = e.touches[0];
+      moveDrag(touch.clientX, touch.clientY);
+    }
+  };
+
+  canvasElement.ontouchend = (e) => {
+    e.preventDefault();
+    endDrag();
+  };
+
+  canvasElement.ontouchcancel = (e) => {
+    e.preventDefault();
+    endDrag();
+  };
 }
 
 
