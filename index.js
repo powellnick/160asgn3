@@ -163,7 +163,7 @@ function addContinuousButton(btnId, action) {
     e.preventDefault();
     if (!timer) {
       action();
-      timer = setInterval(action, 100);
+      timer = setInterval(action, 100); 
     }
   };
 
@@ -182,6 +182,30 @@ function addContinuousButton(btnId, action) {
   btn.addEventListener('touchstart', startAction);
   btn.addEventListener('touchend', stopAction);
   btn.addEventListener('touchcancel', stopAction);
+  btn.addEventListener('touchmove', (e) => e.preventDefault());
+}
+
+function setupDpad() {
+  addContinuousButton('lookUpBtn', () => {
+    worldCamera.lookUp();
+    renderAllShapes();
+  });
+
+  addContinuousButton('lookDownBtn', () => {
+    worldCamera.lookDown();
+    renderAllShapes();
+  });
+
+  addContinuousButton('moveLeftBtn', () => {
+    worldCamera.moveLeft();
+    renderAllShapes();
+  });
+
+  addContinuousButton('moveRightBtn', () => {
+    worldCamera.moveRight();
+    renderAllShapes();
+  });
+  // ... Add more if needed ...
 }
 
 function setupButtonEvents() {
